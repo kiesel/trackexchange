@@ -3,30 +3,36 @@ import { XmlDocument, XmlElement } from 'xmldoc';
 export class Gpx {
   public tracks: Track[] = [];
 
-  public addTrack(track: Track) {
-    this.tracks.push(track);
+  public toString() {
+    return `GPX Tracks: \n${this.tracks.map(track => track.toString())}`;
   }
 }
 
 export class Track {
-  private segments: TrackSegment[] = [];
-  constructor(private name: string, private time: Date) {}
+  public segments: TrackSegment[] = [];
+  constructor(public name: string, public time: Date) {}
 
-  public addSegment(segment: TrackSegment) {
-    this.segments.push(segment);
+  public toString() {
+    return `  Track ${this.name} @ ${this.time}:\n${this.segments.map(segment =>
+      segment.toString(),
+    )}\n`;
   }
 }
 
 export class TrackSegment {
-  private points: TrackPoint[] = [];
+  public points: TrackPoint[] = [];
 
-  public addPoint(point: TrackPoint) {
-    this.points.push(point);
+  public toString() {
+    return `    Segment\n${this.points.map(pt => pt.toString())}\n`;
   }
 }
 
 export class TrackPoint {
-  constructor(private lat: string, private lon: string, private ele: number, private time: Date) {}
+  constructor(public lat: string, public lon: string, public ele: number, public time: Date) {}
+
+  public toString() {
+    return `      Point ${this.lat} ${this.lon} ${this.ele}\n`;
+  }
 }
 
 export class GpxReader {
@@ -37,40 +43,28 @@ export class GpxReader {
     }
 
     const ret = new Gpx();
-    doc.children
+    ret.tracks = doc.children
       .filter(child => child.type === 'element' && child.name === 'trk')
-      .forEach((track: XmlElement) => {
-        ret.addTrack(GpxReader.readTrack(track));
-      });
+      .map((track: XmlElement) => GpxReader.readTrack(track));
     return ret;
   }
 
   public static readTrack(element: XmlElement) {
-    const name = element.children
-      .filter(child => child.type === 'element' && child.name === 'name')
-      .map((element: XmlElement) => element.val)
-      .pop();
-    const time = element.children
-      .filter(child => child.type === 'element' && child.name === 'time')
-      .map((element: XmlElement) => new Date(element.val))
-      .pop();
+    const name = GpxReader.readValue(element, 'name');
+    const time = GpxReader.readValue(element, 'time');
 
-    if (!name || !time) {
-      throw new Error('Unnamed / untimed track');
-    }
-
-    const ret = new Track(name, time);
-    element.children
+    const ret = new Track(name, new Date(time));
+    ret.segments = element.children
       .filter(child => child.type === 'element' && child.name === 'trkseg')
-      .forEach((segment: XmlElement) => ret.addSegment(GpxReader.readSegment(segment)));
+      .map((segment: XmlElement) => GpxReader.readSegment(segment));
     return ret;
   }
 
   public static readSegment(element: XmlElement) {
     const ret = new TrackSegment();
-    element.children
+    ret.points = element.children
       .filter(child => child.type === 'element' && child.name === 'trkpt')
-      .forEach((element: XmlElement) => ret.addPoint(GpxReader.readPoint(element)));
+      .map((element: XmlElement) => GpxReader.readPoint(element));
     return ret;
   }
 
