@@ -1,5 +1,21 @@
 import { XmlDocument, XmlElement } from 'xmldoc';
 
+function deg2rad(deg: number): number {
+  return deg * (Math.PI / 180);
+}
+
+function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Radius of the earth in km
+  const dLat = deg2rad(lat1 - lat2);
+  const dLon = deg2rad(lon1 - lon2);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  var d = R * c; // Distance in km
+  return d * 1000; // Distance in m
+}
+
 export class Gpx {
   public tracks: Track[] = [];
 
@@ -22,16 +38,54 @@ export class Track {
 export class TrackSegment {
   public points: TrackPoint[] = [];
 
+  public get first(): TrackPoint {
+    if (!this.points.length) {
+      throw new Error('Segment contains no waypoints');
+    }
+    return this.points[0];
+  }
+
+  public get last(): TrackPoint {
+    if (!this.points.length) {
+      throw new Error('Segment contains no waypoints');
+    }
+    return this.points[this.points.length - 1];
+  }
+
+  public duration(): number {
+    return this.last.time.getTime() - this.first.time.getTime();
+  }
+
+  public airlineDistance(): number {
+    return this.last.distanceFrom(this.first);
+  }
+
+  public travelDistance(): number {
+    let dist = 0;
+
+    let previous = this.first;
+    this.points.slice(1).forEach(next => {
+      dist += next.distanceFrom(previous);
+      previous = next;
+    });
+
+    return dist;
+  }
+
   public toString() {
-    return `    Segment\n${this.points.map(pt => pt.toString())}\n`;
+    return `    Segment\n${this.points.map(pt => pt.toString()).join('\n')}\n`;
   }
 }
 
 export class TrackPoint {
-  constructor(public lat: string, public lon: string, public ele: number, public time: Date) {}
+  constructor(public lat: number, public lon: number, public ele: number, public time: Date) {}
+
+  public distanceFrom(pt: TrackPoint): number {
+    return haversineDistance(this.lat, this.lon, pt.lat, pt.lon);
+  }
 
   public toString() {
-    return `      Point ${this.lat} ${this.lon} ${this.ele}\n`;
+    return `      Point ${this.lat} ${this.lon} ${this.ele}`;
   }
 }
 
@@ -69,12 +123,12 @@ export class GpxReader {
   }
 
   public static readPoint(element: XmlElement) {
-    const lat = element.attr.lat;
-    const lon = element.attr.lon;
+    const lat = element.attr.lat.trim();
+    const lon = element.attr.lon.trim();
     const ele = GpxReader.readValue(element, 'ele');
     const time = GpxReader.readValue(element, 'time');
 
-    return new TrackPoint(lat, lon, Number(ele), new Date(time));
+    return new TrackPoint(Number(lat), Number(lon), Number(ele), new Date(time));
   }
 
   private static readValue(element: XmlElement, name: string): string {
@@ -84,6 +138,6 @@ export class GpxReader {
     if (elements.length != 1) {
       throw new Error(`Did not find single element named "${name}`);
     }
-    return elements[0];
+    return elements[0].trim();
   }
 }
