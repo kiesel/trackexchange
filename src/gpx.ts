@@ -17,6 +17,14 @@ function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
 export class Gpx {
   public tracks: Track[] = [];
 
+  public duration(): number {
+    return this.tracks.map(t => t.duration()).reduce((prev, next) => prev + next, 0);
+  }
+
+  public travelDistance(): number {
+    return this.tracks.map(t => t.travelDistance()).reduce((prev, next) => prev + next, 0);
+  }
+
   public toString() {
     return `GPX Tracks: \n${this.tracks.map(track => track.toString())}`;
   }
@@ -25,6 +33,14 @@ export class Gpx {
 export class Track {
   public segments: TrackSegment[] = [];
   constructor(public name: string, public time: Date) {}
+
+  public duration(): number {
+    return this.segments.map(s => s.duration()).reduce((prev, next) => prev + next, 0);
+  }
+
+  public travelDistance(): number {
+    return this.segments.map(s => s.travelDistance()).reduce((prev, next) => prev + next, 0);
+  }
 
   public toString() {
     return `  Track ${this.name} @ ${this.time}:\n${this.segments.map(segment =>
