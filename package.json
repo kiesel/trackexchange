@@ -4,16 +4,20 @@
   "description": "Analyze .gpx files",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha -r ts-node/register --watch-extensions ts --recursive tests/**/*.spec.ts",
     "analyze": "ts-node src/analyze.ts"
   },
   "author": "Alex D'Andrea <alex@dandrea.io>",
   "license": "MIT",
   "devDependencies": {
+    "@types/chai": "^4.1.7",
     "@types/cli-table": "^0.3.0",
+    "@types/mocha": "^5.2.7",
     "@types/node": "^12.6.8",
     "@types/xmldoc": "^1.1.4",
     "@types/yargs": "^13.0.0",
+    "chai": "^4.2.0",
+    "mocha": "^6.2.0",
     "prettier": "^1.18.2",
     "ts-node": "^8.3.0",
     "typescript": "^3.5.3"
