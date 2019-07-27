@@ -5,34 +5,9 @@ import { promisify } from 'util';
 import { TrackSegment, TrackPoint } from './gpx';
 import Table from 'cli-table';
 import { GpxReader } from './gpx-reader';
+import { Formatter } from './formatter';
 
 const readFile = promisify(fs.readFile);
-
-function formatDistance(dist: number) {
-  if (dist > 1000) {
-    return (dist / 1000).toFixed(2) + ' km';
-  }
-  return dist.toFixed(0) + ' m';
-}
-
-function formatDuration(duration: number) {
-  const secs = duration / 1000;
-  const min = secs / 60;
-
-  if (min >= 60) {
-    return `${Math.floor(min / 60)} h ${(min % 60).toFixed(0)} m ${secs % 60} s`;
-  }
-
-  if (min >= 1) {
-    return `${min.toFixed(0)} m ${(secs % 60).toFixed(0)} s`;
-  }
-
-  return `${secs.toFixed(0)} s`;
-}
-
-function formatSpeed(s: number) {
-  return `${s.toFixed(2)} km/h`;
-}
 
 async function analyze(file: string) {
   const data = await readFile(file);
@@ -80,9 +55,9 @@ async function analyze(file: string) {
           pt.lat,
           pt.lon,
           pt.ele,
-          formatDuration(deltaT),
-          formatDistance(dist),
-          formatSpeed(speed),
+          Formatter.formatDuration(deltaT),
+          Formatter.formatDistance(dist),
+          Formatter.formatSpeed(speed),
         ]);
         lastPt = pt;
       });
@@ -95,9 +70,9 @@ async function analyze(file: string) {
     '',
     '',
     '',
-    formatDuration(gpx.duration()),
-    formatDistance(gpx.travelDistance()),
-    formatSpeed(gpx.travelDistance() / 1000 / (gpx.duration() * 60 * 60)),
+    Formatter.formatDuration(gpx.duration()),
+    Formatter.formatDistance(gpx.travelDistance()),
+    Formatter.formatSpeed(gpx.travelDistance() / 1000 / (gpx.duration() * 60 * 60)),
   ]);
 
   console.log(t.toString());
