@@ -43,9 +43,9 @@ async function analyze(file: string) {
         let speed: number = 0;
 
         if (lastPt) {
-          deltaT = (pt.time.getTime() - lastPt.time.getTime()) / 1000;
+          deltaT = pt.time.getTime() - lastPt.time.getTime();
           dist = pt.distanceFrom(lastPt);
-          speed = ((pt.distanceFrom(lastPt) / deltaT) * 60 * 60) / 1000;
+          speed = (pt.distanceFrom(lastPt) / deltaT) * 60 * 60;
         }
 
         t.push([

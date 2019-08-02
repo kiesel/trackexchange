@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha -r ts-node/register --watch-extensions ts --recursive tests/**/*.spec.ts",
-    "analyze": "ts-node src/analyze.ts"
+    "start": "ts-node src/main.ts"
   },
   "author": "Alex D'Andrea <alex@dandrea.io>",
   "license": "MIT",
